@@ -93,7 +93,7 @@ for elem in conceitos:
     if gen=="Nap":
         gen = ""
     dicionario[num] = {"Termo":tit, "Género": gen, "Classes": [tipo for tipo in re.split(r'\s{2,}',tipos[0])]}
-    extras = ["#SIN","#Nota"]
+    extras = ["#SIN","#Nota","REL"]
     for extra in extras:
         if extra in elem:
             cont = re.search(r'{}([\w\W]+?)[@#]'.format(extra),elem).groups()
@@ -105,9 +105,23 @@ for elem in conceitos:
             dicionario[num][extra] = cont
     subtemas = ["#SUBT","#Vid"]
     if "#SUBT" in elem:
-        subt = [sub for sub in re.findall()]
-    
-    
+        subt = [sub for sub in re.findall(r'#SUBT(.+\n(.+\n)*?)#',elem)]
+        vid = [sub for sub in re.findall(r'#Vid(.+\n(.+\n)*?)[@#]',elem)]  # um subt tem sempre um vid
+        subt = subt[0]
+        vid = vid[0]
+        rel = {}
+        for i in range(len(subt)):
+            if subt[i]!="" and vid[i]!="":
+                subt_c = subt[i].strip("\n")
+                subt_c = subt_c.strip(".-")
+                subt_c = subt_c.strip(" ")
+
+                vid_c = vid[i].strip("\n")
+                vid_c = vid_c.strip(".-")
+                vid_c = vid_c.strip(" ")
+                rel[subt_c] = vid_c
+                dicionario[num]["Termos relacionados"] = rel
+
     trad= re.findall(r"(pt|en|es|la)@([\w\W]+?[@#])",elem)
     for idioma in trad:
         cod_pais = idioma[0]
@@ -125,17 +139,3 @@ for elem in conceitos:
 file_out = open("dados.json","w", encoding="utf-8")
 json.dump(dicionario,file_out,  indent=4, ensure_ascii=False)
 file_out.close()
-
-"""
-lista=[]
-for elem in conceitos:
-    num = elem.split()
-    num = num[0]
-    lista.append(num)
-
-lista_nova=[]
-for i in range(1,5394):
-    if i not in dicionario:
-        lista_nova.append(i)
-
-print(lista_nova)"""
