@@ -1,0 +1,34 @@
+<text>a </text>
+<text>adxectivo</text>
+<text>abrev </text>
+<text>abreviatura</text>
+<text>arc. </text>
+<text>forma arcaica</text>
+<text>Br. </text>
+<text>portugués do Brasil</text>
+<text>col. </text>
+<text>forma coloquial</text>
+<text>cult. </text>
+<text>forma culta</text>
+<text>EE. UU. </text>
+<text>inglés americano</text>
+<text>f </text>
+<text>substantivo feminino</text>
+<text>lit. </text>
+<text>forma literaria</text>
+<text>loc </text>
+<text>locución</text>
+<text>m </text>
+<text>substantivo masculino</text>
+<text>pl </text>
+<text>plural</text>
+<text>pop. </text>
+<text>forma popular</text>
+<text>Pt. </text>
+<text>portugués de Portugal</text>
+<text>s </text>
+<text>substantivo con variación de xénero</text>
+<text>sb </text>
+<text>símbolo</text>
+<text>sg </text>
+<text>sigla</text>

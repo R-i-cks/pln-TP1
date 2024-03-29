@@ -7,8 +7,7 @@ doc_text_path ="medicina.xml"
 doc_t = open(doc_text_path,'r', encoding="utf-8")
 
 doc = doc_t.read()
-
-doc = re.sub(r'<page number="544"[\w\W]+',"",doc) # retirar paginas sem interesse
+#doc = re.sub(r'<page number="544"[\w\W]+',"",doc) # retirar paginas sem interesse
 
 
 doc = re.sub(r"<text\stop.*?>",r"<text>",doc) # limpar dados
@@ -54,7 +53,6 @@ doc = re.sub(r'(b@.+)\n<text><b>(.+)\s+([mfa])\s*</b></text>\n',r'\1\2#\3#\n',do
 doc = re.sub(r'(b@.+)\n<text><b>(.+)\s+([mfa]?)\s*</b></text>\n',r'\1\2#\3#\n',doc) # escrever esta e a linha anterior não estava a funcionar como esperado
 
 # Ao analisar elementos com bold reparou-se que havia um subtítulo com 4 linhas, e vários com 2 ou 1.
-""""""
 doc = re.sub(r'<text><b>(.+)</b></text>\n?<text><b>(.+)</b></text>\n?<text><b>(.+)</b></text>\n?<text><b>(.+)</b></text>\n?',r'#SUBT \1\2 \3\4\n',doc)  # não se usou {4} para conseguir aceder aos grupos de captura
 doc = re.sub(r'<text><b>(.+)</b></text>\n?<text><b>(.+)</b></text>\n',r'#SUBT \1\2\n',doc)
 doc = re.sub(r'<text><b>(.+)</b></text>\n',r'#SUBT \1\n',doc)
