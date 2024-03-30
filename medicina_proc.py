@@ -44,7 +44,7 @@ doc = re.sub(r'<text>\s*(SIN[\w\W]+?)</text>\n',r'#\1\n',doc) # marcação de si
 doc = re.sub(r'<text>\s*(Vid.+)</text>',r'#\1',doc) # etiquetar VID.
 doc = re.sub(r'(#Vid.-\s\w+\s)\n<text>(.+)</text>',r'\1\2',doc) # lidar com situações que ficou em 2 linhas
 doc = re.sub(r'(b@.+)\n<text><i><b>(.+)</b></i></text>\n.+<b>\s*(.+)</b>.+\n',r'\1\2 #\3#\n',doc)  # correção para titulos multilinha
-doc = re.sub(r'<text><i><b>(.+)</b></i></text>\n#',r'#REL \1\n',doc) # marcação de termos que aparecem a negrito
+doc = re.sub(r'<text><i><b>(.+)</b></i></text>\n#',r'#SUBT \1\n',doc) # marcação de termos que aparecem a negrito
 doc = re.sub(r'<text><i>(.+)</i></text>\n;',r'\1;',doc) # retirar linhas de ; pós itálico
 doc = re.sub(r'<text><i>(.+)</i></text>',r'\1',doc) # retirar itálico
 doc = re.sub(r'(b@.+)\n.+<b>(.+)</b>.+\n.+<b>.*\s([mfa]).*</b>.+',r'\1\2#\3#',doc) # títulos de 3 linhas e colocar tag no genero
@@ -69,17 +69,23 @@ doc = re.sub(r"(#SUBT   CO)\n@tb@\s(2)",r"\1\2",doc) # caso específico em que C
 doc = re.sub(r'(@tb@.+)\n@tb@\s(.+)',r'\1\2',doc)  # erro de tag, duas seguidas referentes ao msm
 doc = re.sub(r'(b@.+)##\n#SUBT\s([mf])\s+\n',r'\1 #\2#\n',doc) # correção de um erro introduzido
 doc = re.sub(r'(b@.+#)#',r'\1Nap#',doc) # marcar os que n tem genero
-
+doc = re.sub(r'(#SUBT.+)\n#SUBT(.+)\n',r'\1\2\n',doc) # casos de 2 linhas com SUBT
+doc = re.sub(r'(#SUBT.+\n)(Vid.)',r'\1#\2',doc)
 doc += '@t' # introduzido para fechar o último termo
 
 conceitos = re.findall(r"b@[\w\W]+?@t", doc)
 
-sub_ini = "#SUBT A\n#Vid.- adenina"  # este subtermo está fora de todos os outros. 
+sub_ini = "#SUBT A\n#Vid.- adenina\n@t"  # este subtermo está fora de todos os outros. 
+conceitos[0].strip("@t")
+conceitos[0] += sub_ini
+# Nestas 3 linhas de código incluiu-se a primeira entrada remissiva no primeiro fragmento para não ocorrer perda de informação. 
+
+"""  Com este ficheiro podemos ver alterações em tempo real ao ficheiro
 
 file_out = open("medicaProc.txt","w")
 file_out.write(doc)
 file_out.close()
-
+"""
 dicionario = {}
 
 for elem in conceitos:
@@ -91,7 +97,7 @@ for elem in conceitos:
     if gen=="Nap":
         gen = ""
     dicionario[num] = {"Termo":tit, "Género": gen, "Classes": [tipo for tipo in re.split(r'\s{2,}',tipos[0])]}
-    extras = ["#SIN","#Nota","REL"]
+    extras = ["#SIN","#Nota","#VAR"]
     for extra in extras:
         if extra in elem:
             cont = re.search(r'{}([\w\W]+?)[@#]'.format(extra),elem).groups()
@@ -101,24 +107,28 @@ for elem in conceitos:
             cont = cont.strip()
             cont = re.sub(r'\s+',' ',cont)
             dicionario[num][extra] = cont
-    subtemas = ["#SUBT","#Vid"]
+    
     if "#SUBT" in elem:
-        subt = [sub for sub in re.findall(r'#SUBT(.+\n(.+\n)*?)#',elem)]
-        vid = [sub for sub in re.findall(r'#Vid(.+\n(.+\n)*?)[@#]',elem)]  # um subt tem sempre um vid
-        subt = subt[0]
-        vid = vid[0]
+        subt = re.findall(r'#SUBT(.+\n(.+\n)*?)#',elem)
+        vid = re.findall(r'#(Vid.+\n(.+\n)*?)[@#]',elem)  # um subt tem sempre um vid
         rel = {}
         for i in range(len(subt)):
-            if subt[i]!="" and vid[i]!="":
-                subt_c = subt[i].strip("\n")
+                subt_c = ""
+                vid_c = ""
+                for j in range(len(subt[i])):
+                    subt_c += subt[i][j]
+                for k in range(len(vid[i])):
+                    vid_c += vid[i][k]
+                subt_c = subt_c.strip("\n")
                 subt_c = subt_c.strip(".-")
                 subt_c = subt_c.strip(" ")
-
-                vid_c = vid[i].strip("\n")
-                vid_c = vid_c.strip(".-")
+                
+                vid_c = vid_c.strip("\n")
                 vid_c = vid_c.strip(" ")
                 rel[subt_c] = vid_c
-                dicionario[num]["Termos relacionados"] = rel
+        dicionario[num]["Entrada remissiva"] = rel
+
+
 
     trad= re.findall(r"(pt|en|es|la)@([\w\W]+?[@#])",elem)
     for idioma in trad:
