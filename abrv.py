@@ -12,6 +12,9 @@ doc = re.sub(r"<text\stop.*?>",r"<text>",doc) # limpar dados
 doc = re.sub(r'.+page.+\n?',"",doc)
 doc = re.sub(r'.+\n.+</b></text>\n',"",doc)
 
-file_out = open("abrev.txt","w")
-file_out.write(doc)
+lista_abr_sig = re.findall(r'<text>(.+)</text>\n<text>(.+)</text>',doc)
+dic = {elem[0].strip() : elem[1] for elem in lista_abr_sig}
+
+file_out = open("abrev.json","w", encoding="utf-8")
+json.dump(dic,file_out,  indent=4, ensure_ascii=False)
 file_out.close()
