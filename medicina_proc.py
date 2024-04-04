@@ -7,37 +7,37 @@ doc_text_path ="medicina.xml"
 doc_t = open(doc_text_path,'r', encoding="utf-8")
 
 doc = doc_t.read()
-#doc = re.sub(r'<page number="544"[\w\W]+',"",doc) # retirar paginas sem interesse
 
 
 doc = re.sub(r"<text\stop.*?>",r"<text>",doc) # limpar dados
 doc = re.sub(r"<text>\s*</text>\n",r"", doc)
+doc = re.sub(r'<page number[\w\W]+?<text>\d+</text>\n',"",doc) # retirar inicio de pagina
+doc = re.sub(r"</page>\n","",doc) # retirar fim de pagina
+doc = re.sub(r"<fontspec.*\n","",doc) # retirar fontspec de fim de pagina
+
 
 
 doc = re.sub(r"<text><b>\s*(\d.*)</b></text>",r"@tb@ \1", doc) # marcar inicio de um titulo
-
 doc = re.sub(r"<text>\s*(\d+)\s</text>\n<text><b>(.*)</b></text>",r"@tb@ \1 \2",doc)
 # Esta regex captura todos os elementos que não foram captados na anterior, por estarem em 2 linhas e coloca no mesmo formato
 
 doc = re.sub(r"<text>\s*(es)+\s*</text>","@es@",doc)  # marcar traducoes em espanhol
 doc = re.sub(r"<text>\s*(pt)+\s*</text>","@pt@",doc)  # marcar traducoes em português
 doc = re.sub(r"<text>\s*(en)+\s*</text>","@en@",doc)  # marcar traducoes em inglês
-doc = re.sub(r"<text>\s*(la)+\s*</text>","@la@",doc)  # marcar traducoes em galego
+doc = re.sub(r"<text>\s*(la)+\s*</text>","@la@",doc)  # marcar traducoes em latim
 
-doc = re.sub(r"<text><i>([-\w\s\[\]\.]+)</i></text>",r"\1",doc) #extrair o conteudo de dentro das tags
+
+
+doc = re.sub(r"<text><i>([-\w\s\[\]\.]+)</i></text>",r"\1",doc) #extrair o conteudo de dentro das tags de itálico, que não tenha mais tags 
+
 doc = re.sub(r"<text>\s*;\s*</text>",r";",doc) # retirar lixo nas linhas de ;
 
 doc = re.sub(r"<text><b>\s*</b></text>\n","",doc) # retirar tags vazias
 doc = re.sub(r"([\.\[\]\w]+)\n;\n",r"\1;\n",doc) # retirar linhas em branco entre palavras e ;
-doc = re.sub(r"</page>\n","",doc) # retirar fim de pagina
-doc = re.sub(r"<fontspec.*\n","",doc) # retirar fontspec de fim de pagina
 
-siglas = re.findall(r'<page number="16"[\w\W]+?<text>20</text>\n',doc)
-doc = re.sub(r'<page number="16"[\w\W]+?<text>20</text>\n',"",doc)
 
-doc = re.sub(r'<page number[\w\W]+?<text>\d+</text>\n',"",doc) # retirar inicio de pagina
-
-doc = re.sub(r"\s+([fmas]|sg|sb)\n\s*(\w)",r' #\1#\n\2',doc) # retirar espaços e marcar genero + s(ingular) + sg + sb
+""""""
+doc = re.sub(r"\s+([fmas]|sg|sb)\n\s*(\w)",r' #\1#\n\2',doc) # retirar espaços e marcar genero + s + sg + sb
 doc = re.sub(r'\s+([fma])\s*pl\n\s*([\w])',r' #\1 pl#\n\2',doc) # caso especial em que aparecia genero e pl (plural)
 doc = re.sub(r"\s\n\s+",r" ", doc) # remoção de um erro de espaçamento
 doc = re.sub(r'<text>\s*(SIN[\w\W]+?)</text>\n',r'#\1\n',doc) # marcação de sinónimos
@@ -86,6 +86,7 @@ file_out = open("medicaProc.txt","w")
 file_out.write(doc)
 file_out.close()
 """
+
 dicionario = {}
 
 for elem in conceitos:
@@ -96,7 +97,20 @@ for elem in conceitos:
     tit = re.sub(r'\s+',' ', tit)
     if gen=="Nap":
         gen = ""
-    dicionario[num] = {"Termo":tit, "Género": gen, "Classes": [tipo for tipo in re.split(r'\s{2,}',tipos[0])]}
+    dicionario[num] = {"Termo":tit, "Categoria gramatical": gen, "Área(s) de aplicação": [tipo for tipo in re.split(r'\s{2,}',tipos[0])], "Traduções": {}}
+    trad= re.findall(r"(pt|en|es|la)@([\w\W]+?[@#])",elem)
+    for idioma in trad:
+        cod_pais = idioma[0]
+        tradu = idioma[1].replace("\n"," ")
+        tradu = tradu.replace("@","")
+        tradu= tradu.strip("#")
+        tradu= tradu.strip("@")
+        tradu= tradu.strip()
+        tradu = re.sub(r'\s+',' ', tradu)
+        dicionario[num]["Traduções"][cod_pais] = tradu
+
+    
+    
     extras = ["#SIN","#Nota","#VAR"]
     for extra in extras:
         if extra in elem:
@@ -130,16 +144,6 @@ for elem in conceitos:
 
 
 
-    trad= re.findall(r"(pt|en|es|la)@([\w\W]+?[@#])",elem)
-    for idioma in trad:
-        cod_pais = idioma[0]
-        tradu = idioma[1].replace("\n"," ")
-        tradu = tradu.replace("@","")
-        tradu= tradu.strip("#")
-        tradu= tradu.strip("@")
-        tradu= tradu.strip()
-        tradu = re.sub(r'\s+',' ', tradu)
-        dicionario[num][cod_pais] = tradu
 
 
 
@@ -147,3 +151,5 @@ for elem in conceitos:
 file_out = open("dados.json","w", encoding="utf-8")
 json.dump(dicionario,file_out,  indent=4, ensure_ascii=False)
 file_out.close()
+
+
